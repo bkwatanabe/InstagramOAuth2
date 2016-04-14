@@ -1,0 +1,64 @@
+<html>
+
+<head>
+    <title>Instagram API Fun</title>
+</head>
+<script src="jquery-2.2.0.min.js"></script>
+
+<body>
+   <h4>This will show the logged in user's last instagram post if they are authorized.<br> Click on the login link to get authorized and then click the button to see your last post.</h4>
+    <div>Click this to login to Instagram!</div>
+    <a href="https://www.instagram.com/oauth/authorize/?client_id=362e725d8c834aaf879216e8faeee49b&redirect_uri=http://www.brettwatanabe.com/instagram&response_type=token">Login</a>
+    <br>
+    <div class="authorized" hidden>You are authorized.</div>
+    <div id="unauthorized" hidden>You aren't authorized yet.</div>
+    <br>
+    <button id="showPost">Show Last Post</button>
+    <div class="authorized" hidden>Last Post:</div>
+    <img class="authorized" id="lastPost" hidden>
+</body>
+<script>
+    var baseQueryString = "https://api.instagram.com/v1/users/self/media/recent?access_token=";
+    var tokenArgPattern = /access_token=/;
+    var accessToken;
+    var showPost = $("#showPost");
+    var check = $("#check");
+    var authorized = $(".authorized");
+    var unauthorized = $("#unauthorized");
+    
+    function getAccessToken() {
+        
+        if (tokenArgPattern.test(document.documentURI)) {
+            authorized.show();
+            unauthorized.hide();
+            accessToken = document.documentURI.split(tokenArgPattern)[1];
+        } else {
+            authorized.hide();
+            unauthorized.show();
+        }
+    }
+    
+    showPost.on("click", function (event) {
+        $.ajax({
+            type: "GET",
+            dataType: "jsonp",
+            url: baseQueryString + accessToken,
+            success: function (data) {
+                if(data.meta.code === 200){
+                    $("#lastPost")[0].src = data.data[0].images.low_resolution.url;
+                }
+                else{
+                    alert(data.meta.error_type + ": " + data.meta.error_message);
+                }
+            }
+        });
+    });
+
+    
+    $(document).ready(function(){
+        getAccessToken();
+    });
+    
+</script>
+
+</html>
